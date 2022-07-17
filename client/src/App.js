@@ -1,44 +1,27 @@
-import './App.css';
-import {Container, AppBar, Typography, Grow} from '@mui/material';
-import Posts from './components/Posts/Posts';
-import Form from './components/Form/Form';
-import { useDispatch } from 'react-redux';
-import { useEffect } from 'react';
-
-import {getPosts} from './actions/posts'
+import {Container} from '@mui/material';
+import Navbar from './components/Inc/Navbar/Navbar';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './views/Home';
+import Auth from './views/Auth/Auth';
+import PostDetail from './views/Posts/PostDetail'
 
 function App() {
 
-  const dispatch = useDispatch()
-
-  useEffect(()=>{
-    dispatch(getPosts())
-  }, [ dispatch ])
+  const user = JSON.parse(localStorage.getItem('profile'));
 
   return (
     <div className="App">
       <Container maxWidth="lg">
-        <AppBar position='static' color='inherit'>
-          <Typography variant="h2" align="center">
-            Socio
-            <img src={''} height="60"/>
-          </Typography>
-        </AppBar>
-
-        <Grow in>
-          <Container>
-            <Grid container justify="space-between" alignItems="stretch" spacing="3">
-              <Grid item xs={12} sm={7}>
-                <Posts/>
-              </Grid>
-              
-              <Grid item xs={12} sm={4}>
-                <Form/>
-              </Grid>
-            </Grid>
-          </Container>
-        </Grow>
-
+        <Navbar />
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' exact element={ <Home />}></Route>
+            <Route path='/search' exact element={ <Home />}></Route>
+            <Route path='/posts/:id' exact element={ <PostDetail />}></Route>
+            <Route path='/auth' exact element={ !user ? <Auth /> : <Navigate to='/' />}></Route>
+            <Route path='*' element={<Navigate to='/' />}></Route>
+          </Routes>
+        </BrowserRouter>
       </Container>
     </div>
   );
