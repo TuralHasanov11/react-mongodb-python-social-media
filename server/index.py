@@ -1,23 +1,16 @@
+from datetime import timedelta
 from math import ceil
-from typing import Union, Optional
-from fastapi import FastAPI, Query, Request
+from typing import Optional
+from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
-from pydantic import BaseModel, EmailStr, BaseSettings
 from fastapi.responses import JSONResponse
-from pymongo import MongoClient
 from bson.objectid import ObjectId
+from models import RegisterData, LoginData, PostCreateUpdateData, CommentData, User
+from config import db, origins
+from schemas import posts_serializer, post_serializer, user_serializer
+from auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_password_hash, verify_password, getAuthUser
 
 app = FastAPI()
-
-# ---- CORS ----
-origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000"
-]
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,112 +20,180 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# MongoDB connection
-mongoClient = MongoClient("")
-db = mongoClient.test_database
-
-# Request Data Models
-class RegisterData(BaseModel):
-  firstName: str = ''
-  lastName: str = ''
-  email: EmailStr = ''
-  password: str = ''
-  confirmPassword: str = ''
-
-class LoginData(BaseModel):
-  email: EmailStr = ''
-  password: str = ''
-
-class PostCreateUpdateData(BaseModel):
-  title: str = ''
-  message: str = ''
-  tags: list = []
-  selectedFile: str = ''
-  username: str = ''
-
-class CommentData(BaseModel):
-  comment: str
-  
 # Endpoints  
 @app.get("/posts")
-def getPosts(page: Optional[int] = Query(1)):
+def getPosts(page: Optional[str] = Query(1), username: Optional[str] = Query(None), searchQuery: Optional[str]=Query(None), tags: Optional[str] = Query(None)):
   try:
     limit = 10
+    page = int(page)
     startIndex = (page-1)*limit
 
-    posts = db.posts.find().skip(startIndex).limit(limit)
-    total = db.posts.count_documents({})
+    if tags:
+      tags = tags.split(',')
 
-    return JSONResponse(content = { "data": posts, "currentPage": page, "numberOfPages": ceil(total / limit)})
+    posts = db.posts.aggregate([
+      { "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]},
+      {
+        "$lookup":{
+          "from": "users",
+          "localField":"user", 
+          "foreignField": "_id",
+          "as":"user",
+        }
+      },
+      # {"$sort": {"created_at": -1}}
+      {"$skip": startIndex},
+      {"$limit": limit}
+    ])
+    total = db.posts.count_documents({ "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]},)
+
+    return JSONResponse(content = { "data": posts_serializer(posts), "currentPage": page, "numberOfPages": ceil(total / limit)})
   except Exception as e:
-    return JSONResponse(status=400, content = e)
+    return JSONResponse(status_code=400, content = e)
 
 @app.get("/posts/{post_id}")
 def getPost(post_id:str):
   try:
-    post = db.posts.find_one({'_id': ObjectId(post_id)})
+    post = db.posts.aggregate([
+      { "$match": { "_id":  ObjectId(post_id)} },
+      {
+        "$lookup":{
+          "from": "users",
+          "localField":"user", 
+          "foreignField": "_id",
+          "as":"user",
+        }
+      }
+    ])
 
-    return post
+    post = next(post)
+
+    return post_serializer(post)
   except Exception as e:
-    return JSONResponse(status=400, content = e)
-
-@app.get("/posts/creator")
-def getPostsByCreator(username: str, page: Optional[int] = Query(1)):
-  try:
-    limit = 10
-    posts = db.posts.find({ "username": username})
-    total = db.posts.count_documents({ "username": username})
-
-    return JSONResponse(content = { "data": posts, "currentPage": page, "numberOfPages": ceil(total / limit)})
-  except Exception as e:
-    return JSONResponse(status=400, content = e)
-
-@app.get("/posts/search")
-def getPostsBySearch(searchQuery: Optional[str]=Query(None), tags: Optional[str] = Query(None), page: Optional[int] = Query(1)):
-  try:
-    limit = 10
-    startIndex = (page-1)*limit
-
-    tags = tags.split(',')
-
-    posts = db.posts.find({ "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]}).skip(startIndex).limit(limit)
-    total = db.posts.count_documents({ "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]})
-
-    return JSONResponse(content = { "data": posts, "currentPage": page, "numberOfPages": ceil(total / limit)})
-  except Exception as e:
-    return JSONResponse(status=400, content = e)
+    return JSONResponse(status_code=400, content = e)
 
 @app.post("/posts")
-def createPost(data: PostCreateUpdateData):
+def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
   try:
-    posts = db.posts
-    post = posts.insert_one(data)
+    post = db.posts.insert_one({
+      "title": data.title,
+      "message": data.message,
+      "tags": data.tags,
+      "selectedFile": data.selectedFile,
+      "user": ObjectId(user.id)
+    })
 
-    return post
+    post = db.posts.find_one({"_id": ObjectId(post.inserted_id)})
+  
+    return post_serializer(post)
   except Exception as e:
-    return JSONResponse(status=400, content = e)
+    return JSONResponse(status_code=400, content=e)
 
 @app.patch("/posts/{post_id}/like")
-def likePost(post_id: str):
-  return {"Hello": "World"}
+def likePost(post_id: str, user: User = Depends(getAuthUser)):
+  try:  
+    posts = db.posts
+
+    post = posts.find_one({"_id": post_id})
+    index = next(index for index, item in post["likes"] if item["user"] == user.id)
+
+    if index >= 0:
+      post = posts.update_one({"_id": post_id}, { "$pull": { "likes": { "user": ObjectId(user.id) } } })
+    else:
+      post = posts.update_one({"_id": post_id}, { "$addToSet": { "likes": {
+        "user": ObjectId(user.id)
+      }}})
+
+    return post_serializer(post)
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
 
 @app.post("/posts/{post_id}/comments")
-def commentPost(post_id: str, data: CommentData):
-  return {"Hello": "World"}
+def commentPost(post_id: str, data: CommentData, user: User = Depends(getAuthUser)):
+  try:
+    posts = db.posts
+
+    post = posts.update_one({"_id": post_id}, { 
+      "$push": { "comments": { "user": ObjectId(user.id), "comment": data.comment } } 
+    })
+
+    return post_serializer(post)
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
 
 @app.patch("/posts/{post_id}")
-def updatePost(post_id: str, data: PostCreateUpdateData):
-  return {"Hello": "World"}
+def updatePost(post_id: str, data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
+  try:
+    post = db.posts.update_one({"_id": post_id, "user": ObjectId(user.id) }, {
+      "$set": {
+        "title": data.title, 
+        "message": data.message, 
+        "tags": data.tags,
+        "selectedFile": data.selectedFile
+      }
+    })
+
+    post = db.posts.find_one({"_id": ObjectId(post.inserted_id)})
+  
+    return post_serializer(post)
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
 
 @app.delete("/posts/{post_id}")
-def deletePost(post_id: str):
-  return {"Hello": "World"}
+def deletePost(post_id: str, user: User = Depends(getAuthUser)):
+  try:
+    post = db.posts.delete_one({"_id": post_id, "user": ObjectId(user.id) })
+
+    return post_serializer(post)
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
 
 @app.post("/auth/login")
 def login(data: LoginData):
-  return {"Hello": "World"}
+  try:
+    oldUser = db.users.find_one({ "email": data.email })
+
+    if oldUser and verify_password(data.password, oldUser["password"]):
+      oldUser = user_serializer(oldUser)
+      
+      token = create_access_token(
+        data={"id": oldUser["id"]}, expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+      )
+
+      return JSONResponse(content = {"result": oldUser, "token": token})
+    else:
+      return JSONResponse(status_code=401, content={"message": "Email or password is incorrect!"})
+
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
 
 @app.post("/auth/register")
-def register(data: RegisterData):
-  return {"Hello": "World"}
+async def register(data: RegisterData):
+  try:
+    oldUser = db.users.find_one({ "email": data.email })
+
+    if oldUser:
+      return JSONResponse(status_code=400, content={"message": "User exists!"})
+    else:
+      hashedPassword = get_password_hash(data.password)
+
+      try:
+        user = db.users.insert_one({
+          "username": data.firstName + ' ' + data.lastName,
+          "email": data.email,
+          "password": hashedPassword
+        }) 
+
+        user = db.users.find_one({"_id": ObjectId(user.inserted_id)})
+
+        user = user_serializer(user)
+
+        token = create_access_token(
+          data={"id": user["id"]}, expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+      except Exception as e:
+        return JSONResponse(status_code=400, content = e)
+
+      return JSONResponse(status_code= 201, content= {"result": user, "token": token})
+  except Exception as e:
+    return JSONResponse(status_code=400, content=e)

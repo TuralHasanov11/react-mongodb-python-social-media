@@ -28,10 +28,10 @@ export default function Form({ postId, setPostId }){
         e.preventDefault();
 
         if (postId === 0) {
-          dispatch(createPost({ ...postData, username: user?.result?.name }, history));
+          dispatch(createPost(postData, navigate));
           clearForm();
         } else {
-          dispatch(updatePost(postId, { ...postData, username: user?.result?.name }));
+          dispatch(updatePost(postId, postData));
           clearForm();
         }
     };
