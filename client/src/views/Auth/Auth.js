@@ -10,6 +10,7 @@ import { login, register } from '../../actions/auth';
 import { AUTH } from '../../constants/actionTypes';
 import useStyles from '../../components/Auth/styles';
 import Input from '../../components/Auth/Input';
+import { alpha } from '@mui/material/styles';
 
 const initialState = { firstName: '', lastName: '', email: '', password: '', confirmPassword: '' };
 
@@ -58,7 +59,13 @@ const Auth = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper className={classes.paper} elevation={6}>
+      <Paper className={{
+          marginTop: (theme) => alpha(theme.spacing(8)),
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: theme.spacing(2),
+        }} elevation={6}>
         <Avatar className={classes.avatar}>
           <LockOutlinedIcon />
         </Avatar>

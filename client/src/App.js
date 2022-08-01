@@ -1,6 +1,6 @@
 import {Container} from '@mui/material';
 import Navbar from './components/Inc/Navbar/Navbar';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Home from './views/Home';
 import Auth from './views/Auth/Auth';
 import PostDetail from './views/Posts/PostDetail'

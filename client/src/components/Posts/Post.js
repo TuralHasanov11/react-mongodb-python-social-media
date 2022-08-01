@@ -1,4 +1,4 @@
-import { Card, CardActions, CardContent, CardMedia, Button, Typography } from '@mui/material';
+import { Card, CardActions, CardContent, CardMedia, Button, Typography, ButtonBase } from '@mui/material';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbUpAltOutlined from '@mui/icons-material/ThumbUpAltOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 
 import { likePost, deletePost } from '../../actions/posts';
 import useStyles from './styles';
+import { useState } from 'react';
 
 const Post = ({ post, setPostId }) => {
   const user = JSON.parse(localStorage.getItem('profile'));

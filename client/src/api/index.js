@@ -13,8 +13,8 @@ axiosInstance.interceptors.request.use((req) => {
 
 export const getPost = (id) => axiosInstance.get(`/posts/${id}`);
 export const getPosts = (page) => axiosInstance.get(`/posts?page=${page}`);
-export const getPostsByCreator = (name) => axiosInstance.get(`/posts/creator?name=${name}`);
-export const getPostsBySearch = (searchQuery) => axiosInstance.get(`/posts/search?searchQuery=${searchQuery.search || 'none'}&tags=${searchQuery.tags}`);
+export const getPostsByCreator = (name) => axiosInstance.get(`/posts/creator`, {params: {name: name}});
+export const getPostsBySearch = (searchQuery) => axiosInstance.get(`/posts/search`, { params: { searchQuery: searchQuery.search, tags: searchQuery.tags } });
 export const createPost = (newPost) => axiosInstance.post('/posts', newPost);
 export const likePost = (id) => axiosInstance.patch(`/posts/${id}/like`);
 export const comment = (value, id) => axiosInstance.post(`/posts/${id}/comments`, { value });

@@ -8,6 +8,7 @@ import { getPostsBySearch } from '../actions/posts';
 import useStyles from '../components/Home/styles';
 import Posts from '../components/Posts/Posts';
 import Form from '../components/Form/Form';
+import Pagination from '../components/Pagination'
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -29,7 +30,7 @@ const Home = () => {
   const searchPosts = () => {
     if (search.trim() || tags) {
       dispatch(getPostsBySearch({ search, tags: tags.join(',') }));
-      navigate(`/posts/search?searchQuery=${search || 'none'}&tags=${tags.join(',')}`);
+      navigate(`/posts/search?searchQuery=${search}&tags=${tags.join(',')}`);
     } else {
       navigate('/');
     }

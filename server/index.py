@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from bson.objectid import ObjectId
 from models import RegisterData, LoginData, PostCreateUpdateData, CommentData, User
-from config import db, origins
+from config import origins, settings, db
 from schemas import posts_serializer, post_serializer, user_serializer
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_password_hash, verify_password, getAuthUser
 
@@ -27,12 +27,9 @@ def getPosts(page: Optional[str] = Query(1), username: Optional[str] = Query(Non
     limit = 10
     page = int(page)
     startIndex = (page-1)*limit
+    query = []
 
-    if tags:
-      tags = tags.split(',')
-
-    posts = db.posts.aggregate([
-      { "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]},
+    aggregate = [
       {
         "$lookup":{
           "from": "users",
@@ -41,13 +38,34 @@ def getPosts(page: Optional[str] = Query(1), username: Optional[str] = Query(Non
           "as":"user",
         }
       },
-      # {"$sort": {"created_at": -1}}
       {"$skip": startIndex},
       {"$limit": limit}
-    ])
-    total = db.posts.count_documents({ "$or": [{"title":{ "$regex": searchQuery, "$options": 'i' }}, {"tags": {"$in": tags}}]},)
+    ]
 
-    return JSONResponse(content = { "data": posts_serializer(posts), "currentPage": page, "numberOfPages": ceil(total / limit)})
+    if searchQuery:
+      query.append({"title":{ "$regex": searchQuery, "$options": 'xi' }})
+
+    if tags:
+      tags = tags.split(',')
+      query.append({"tags": {"$in": tags}})
+
+    if query:
+      aggregate.insert(0, {"$match": { "$or": query}})
+
+    posts = db.posts.aggregate(aggregate)
+    
+    aggregate = [item for item in aggregate if "$match" in item]
+    aggregate.append({"$count": "total"})
+    
+    total = db.posts.aggregate(aggregate)
+    total = next(total)["total"]
+
+    return JSONResponse(
+      content = { 
+        "data": posts_serializer(posts), 
+        "currentPage": page, 
+        "numberOfPages": ceil(total / limit)
+      })
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
 
@@ -57,15 +75,15 @@ def getPost(post_id:str):
     post = db.posts.aggregate([
       { "$match": { "_id":  ObjectId(post_id)} },
       {
-        "$lookup":{
+        "$lookup": {
           "from": "users",
-          "localField":"user", 
+          "localField": "user", 
           "foreignField": "_id",
-          "as":"user",
+          "as": "user",
         }
       }
     ])
-
+    
     post = next(post)
 
     return post_serializer(post)

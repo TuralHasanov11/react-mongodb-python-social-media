@@ -1,9 +1,10 @@
 import useStyles from './styles'
-import { TextField, Button, Typography, Paper } from '@mui/material'
+import { TextField, Button, Typography, Paper, Chip } from '@mui/material'
 import { createPost, updatePost } from '../../actions/posts';
 import { useDispatch, useSelector } from 'react-redux';
 import FileBase from 'react-file-base64';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function Form({ postId, setPostId }){
     const [postData, setPostData] = useState({ title: '', message: '', tags: [], selectedFile: '' });
@@ -15,7 +16,7 @@ export default function Form({ postId, setPostId }){
 
 
     useEffect(() => {
-      if (!post?.title) clear();
+      if (!post?.title) clearForm();
       if (post) setPostData(post);
     }, [post]);
 
@@ -57,12 +58,12 @@ export default function Form({ postId, setPostId }){
 
     return (
         <Paper className={classes.paper} elevation={6}>
-        <form autoComplete="off" noValidate className={`${classes.root} ${classes.form}`} onSubmit={handleSubmit}>
+        <form autoComplete="off" noValidate className={`${classes.root} ${classes.form}`} onSubmit={submitForm}>
             <Typography variant="h6">{postId ? `Editing "${post?.title}"` : 'Creating a Memory'}</Typography>
             <TextField name="title" variant="outlined" label="Title" fullWidth value={postData.title} onChange={(e) => setPostData({ ...postData, title: e.target.value })} />
             <TextField name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
             <div style={{ padding: '5px 0', width: '94%' }}>
-            <ChipInput
+            <Chip
                 name="tags"
                 variant="outlined"
                 label="Tags"

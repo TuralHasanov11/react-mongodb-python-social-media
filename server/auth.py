@@ -1,5 +1,4 @@
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -8,12 +7,10 @@ from jose import JWTError, jwt
 from config import oauth2_scheme
 from config import db
 from schemas import user_serializer
-from fastapi.responses import JSONResponse
-import base64
 from models import User
 from bson.objectid import ObjectId
+from config import SECRET_KEY
 
-SECRET_KEY = base64.b64decode("2d1535099f94385ff9a1cbf691e4b382e8f17c053d8da9a0ed46d90110b30bdf")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 24*60
 
