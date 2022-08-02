@@ -5,17 +5,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ChipInput from 'material-ui-chip-input';
 
 import { getPostsBySearch } from '../actions/posts';
-import useStyles from '../components/Home/styles';
 import Posts from '../components/Posts/Posts';
 import Form from '../components/Form/Form';
 import Pagination from '../components/Pagination'
+import { alpha } from '@mui/material/styles';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 const Home = () => {
-  const classes = useStyles();
   const query = useQuery();
   const page = query.get('page') || 1;
   const searchQuery = query.get('searchQuery');
@@ -49,12 +48,21 @@ const Home = () => {
   return (
     <Grow in>
       <Container maxWidth="xl">
-        <Grid container justify="space-between" alignItems="stretch" spacing={3} className={classes.gridContainer}>
+        <Grid container justify="space-between" alignItems="stretch" spacing={3} sx={{
+          [(theme)=>alpha(theme.breakpoints.down('xs'))]: {
+            flexDirection: 'column-reverse',
+          },
+        }}>
           <Grid item xs={12} sm={6} md={9}>
             <Posts setPostId={setPostId} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <AppBar className={classes.appBarSearch} position="static" color="inherit">
+            <AppBar sx={{
+                borderRadius: 4,
+                marginBottom: '1rem',
+                display: 'flex',
+                padding: '16px',
+              }} position="static" color="inherit">
               <TextField onKeyDown={handleKeyPress} name="search" variant="outlined" label="Search Memories" fullWidth value={search} onChange={(e) => setSearch(e.target.value)} />
               <ChipInput
                 style={{ margin: '10px 0' }}
@@ -64,11 +72,15 @@ const Home = () => {
                 label="Search Tags"
                 variant="outlined"
               />
-              <Button onClick={searchPosts} className={classes.searchButton} variant="contained" color="primary">Search</Button>
+              <Button onClick={searchPosts} variant="contained" color="primary">Search</Button>
             </AppBar>
             <Form postId={postId} setPostId={setPostId} />
             {(!searchQuery && !tags.length) && (
-              <Paper className={classes.pagination} elevation={6}>
+              <Paper sx={{
+                borderRadius: 4,
+                marginTop: '1rem',
+                padding: '16px',
+              }} elevation={6}>
                 <Pagination page={page} />
               </Paper>
             )}

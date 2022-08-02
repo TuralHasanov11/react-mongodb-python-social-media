@@ -51,7 +51,7 @@ async def getAuthUser(token: str = Depends(oauth2_scheme)):
             raise credentials_exception
         token_data = TokenData(id=id)
     except JWTError as e:
-        raise credentials_exception
+        raise e
     user = getUser(id=token_data.id)
     if user is None:
         raise credentials_exception

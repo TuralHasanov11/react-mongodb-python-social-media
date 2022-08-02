@@ -3,14 +3,12 @@ import { Typography, TextField, Button } from '@mui/material';
 import { useDispatch } from 'react-redux';
 
 import { commentPost } from '../../actions/posts';
-import useStyles from './styles';
 
 const Comments = ({ post }) => {
   const user = JSON.parse(localStorage.getItem('profile'));
   const [comment, setComment] = useState('');
   const dispatch = useDispatch();
   const [comments, setComments] = useState(post?.comments);
-  const classes = useStyles();
   const commentsRef = useRef();
 
   const handleComment = async () => {
@@ -24,8 +22,15 @@ const Comments = ({ post }) => {
 
   return (
     <div>
-      <div className={classes.commentsOuterContainer}>
-        <div className={classes.commentsInnerContainer}>
+      <div sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}>
+        <div sx={{
+            height: '200px',
+            overflowY: 'auto',
+            marginRight: '30px',
+          }}>
           <Typography gutterBottom variant="h6">Comments</Typography>
           {comments?.map((c, i) => (
             <Typography key={i} gutterBottom variant="subtitle1">

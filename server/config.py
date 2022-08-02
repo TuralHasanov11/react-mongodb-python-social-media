@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-SECRET_KEY = base64.b64decode(Settings().secret_key)
+settings = Settings()
+
+SECRET_KEY = base64.b64decode(settings.secret_key)
 
 # CORS
 origins = [
@@ -23,10 +25,9 @@ origins = [
 ]
 
 # MongoDB connection
-mongoClient = MongoClient(Settings().mongodb_url)
+mongoClient = MongoClient(settings.mongodb_url)
 db = mongoClient.react_mongodb_python_social_media
 
 # Tokens
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-settings = Settings()

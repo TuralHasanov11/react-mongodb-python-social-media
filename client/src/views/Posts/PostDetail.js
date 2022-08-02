@@ -5,14 +5,13 @@ import moment from 'moment';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
 import { getPost, getPostsBySearch } from '../../actions/posts';
-import useStyles from './styles';
 import Comments from '../../components/PostDetail/Comments';
+import { alpha } from '@mui/material/styles';
 
 const Post = () => {
   const { post, posts, isLoading } = useSelector((state) => state.posts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const classes = useStyles();
   const { id } = useParams();
 
   useEffect(() => {
@@ -31,7 +30,14 @@ const Post = () => {
 
   if (isLoading) {
     return (
-      <Paper elevation={6} className={classes.loadingPaper}>
+      <Paper elevation={6} sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+        borderRadius: '15px',
+        height: '39vh',
+      }}>
         <CircularProgress size="7em" />
       </Paper>
     );
@@ -41,8 +47,19 @@ const Post = () => {
 
   return (
     <Paper style={{ padding: '20px', borderRadius: '15px' }} elevation={6}>
-      <div className={classes.card}>
-        <div className={classes.section}>
+      <div sx={{
+          display: 'flex',
+          width: '100%',
+          [(theme)=>alpha(theme.breakpoints.down('sm'))]: {
+            flexWrap: 'wrap',
+            flexDirection: 'column',
+          },
+        }}>
+        <div sx={{
+            borderRadius: '20px',
+            margin: '10px',
+            flex: 1,
+          }}>
           <Typography variant="h3" component="h2">{post.title}</Typography>
           <Typography gutterBottom variant="h6" color="textSecondary" component="h2">{post.tags.map((tag) => (
             <Link to={`/tags/${tag}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
@@ -64,22 +81,42 @@ const Post = () => {
           <Comments post={post} />
           <Divider style={{ margin: '20px 0' }} />
         </div>
-        <div className={classes.imageSection}>
-          <img className={classes.media} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />
+        <div sx={{
+            marginLeft: '20px',
+            [(theme) => alpha(theme.breakpoints.down('sm'))]: {
+              marginLeft: 0,
+            },
+          }}>
+          <img sx={{
+            borderRadius: '20px',
+            objectFit: 'cover',
+            width: '100%',
+            maxHeight: '600px',
+
+          }} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />
         </div>
       </div>
       {!!recommendedPosts.length && (
-        <div className={classes.section}>
+        <div sx={{
+            borderRadius: '20px',
+            margin: '10px',
+            flex: 1,
+          }}>
           <Typography gutterBottom variant="h5">You might also like:</Typography>
           <Divider />
-          <div className={classes.recommendedPosts}>
+          <div sx={{
+              display: 'flex',
+              [(theme)=>alpha(theme.breakpoints.down('sm'))]: {
+                flexDirection: 'column',
+              },
+            }}>
             {recommendedPosts.map(({ title, name, message, likes, selectedFile, _id }) => (
               <div style={{ margin: '20px', cursor: 'pointer' }} onClick={() => openPost(_id)} key={_id}>
                 <Typography gutterBottom variant="h6">{title}</Typography>
                 <Typography gutterBottom variant="subtitle2">{name}</Typography>
                 <Typography gutterBottom variant="subtitle2">{message}</Typography>
                 <Typography gutterBottom variant="subtitle1">Likes: {likes.length}</Typography>
-                <img src={selectedFile} width="200px" />
+                <img src={selectedFile} width="200px" alt="" />
               </div>
             ))}
           </div>

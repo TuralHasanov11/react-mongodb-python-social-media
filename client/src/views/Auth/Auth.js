@@ -4,13 +4,12 @@ import { Avatar, Button, Paper, Grid, Typography, Container } from '@mui/materia
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from 'react-google-login';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { alpha } from '@mui/material/styles';
 
 import Icon from '../Auth/icon';
 import { login, register } from '../../actions/auth';
 import { AUTH } from '../../constants/actionTypes';
-import useStyles from '../../components/Auth/styles';
 import Input from '../../components/Auth/Input';
-import { alpha } from '@mui/material/styles';
 
 const initialState = { firstName: '', lastName: '', email: '', password: '', confirmPassword: '' };
 
@@ -19,7 +18,6 @@ const Auth = () => {
   const [isRegister, setIsRegister] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const classes = useStyles();
 
   const [showPassword, setShowPassword] = useState(false);
   const handleShowPassword = () => setShowPassword(!showPassword);
@@ -59,18 +57,24 @@ const Auth = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper className={{
+      <Paper sx={{
           marginTop: (theme) => alpha(theme.spacing(8)),
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: theme.spacing(2),
+          padding: (theme) => alpha(theme.spacing(2)),
         }} elevation={6}>
-        <Avatar className={classes.avatar}>
+        <Avatar sx={{
+            margin: (theme) => alpha(theme.spacing(1)),
+            backgroundColor: (theme) => alpha(theme.palette.secondary.main),
+          }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">{ isRegister ? 'Sign up' : 'Sign in' }</Typography>
-        <form className={classes.form} onSubmit={submitForm}>
+        <form sx={{
+            width: '100%', // Fix IE 11 issue.
+            marginTop: (theme) => alpha(theme.spacing(3)),
+          }} onSubmit={submitForm}>
           <Grid container spacing={2}>
             { isRegister && (
             <>
@@ -82,13 +86,15 @@ const Auth = () => {
             <Input name="password" label="Password" handleChange={handleChange} type={showPassword ? 'text' : 'password'} handleShowPassword={handleShowPassword} />
             { isRegister && <Input name="confirmPassword" label="Repeat Password" handleChange={handleChange} type="password" /> }
           </Grid>
-          <Button type="submit" fullWidth variant="contained" color="primary" className={classes.submit}>
+          <Button type="submit" fullWidth variant="contained" color="primary" sx={{ margin: (theme) => alpha(theme.spacing(3, 0, 2))}}>
             { isRegister ? 'Sign Up' : 'Sign In' }
           </Button>
           <GoogleLogin
             clientId="510679744080-1463savaa0fuigldr4i4gvmpa06l41n3.apps.googleusercontent.com"
             render={(renderProps) => (
-              <Button className={classes.googleButton} color="primary" fullWidth onClick={renderProps.onClick} disabled={renderProps.disabled} startIcon={<Icon />} variant="contained">
+              <Button sx={{
+                marginBottom: (theme) => alpha(theme.spacing(2)),
+              }} color="primary" fullWidth onClick={renderProps.onClick} disabled={renderProps.disabled} startIcon={<Icon />} variant="contained">
                 Google Sign In
               </Button>
             )}

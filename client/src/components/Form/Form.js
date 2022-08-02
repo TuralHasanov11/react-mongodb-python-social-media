@@ -1,19 +1,18 @@
-import useStyles from './styles'
 import { TextField, Button, Typography, Paper, Chip } from '@mui/material'
 import { createPost, updatePost } from '../../actions/posts';
 import { useDispatch, useSelector } from 'react-redux';
 import FileBase from 'react-file-base64';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { alpha } from '@mui/material/styles';
+
 
 export default function Form({ postId, setPostId }){
     const [postData, setPostData] = useState({ title: '', message: '', tags: [], selectedFile: '' });
     const post = useSelector((state) => (postId ? state.posts.posts.find((message) => message._id === postId) : null));
     const dispatch = useDispatch();
-    const classes = useStyles();
     const user = JSON.parse(localStorage.getItem('profile'));
     const navigate = useNavigate();
-
 
     useEffect(() => {
       if (!post?.title) clearForm();
@@ -39,7 +38,9 @@ export default function Form({ postId, setPostId }){
 
     if (!user?.result?.name) {
         return (
-          <Paper className={classes.paper} elevation={6}>
+          <Paper sx={{
+              padding: (theme) => alpha(theme.spacing(2)),
+            }} elevation={6}>
             <Typography variant="h6" align="center">
               Please Sign In to create your own memories and like other's memories.
             </Typography>
@@ -57,8 +58,18 @@ export default function Form({ postId, setPostId }){
     
 
     return (
-        <Paper className={classes.paper} elevation={6}>
-        <form autoComplete="off" noValidate className={`${classes.root} ${classes.form}`} onSubmit={submitForm}>
+        <Paper sx={{
+            padding: (theme) => alpha(theme.spacing(2)),
+          }} elevation={6}>
+        <form autoComplete="off" noValidate sx={`${{
+            '& .MuiTextField-root': {
+              margin: (theme) => alpha(theme.spacing(1)),
+            },
+          }} ${{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}`} onSubmit={submitForm}>
             <Typography variant="h6">{postId ? `Editing "${post?.title}"` : 'Creating a Memory'}</Typography>
             <TextField name="title" variant="outlined" label="Title" fullWidth value={postData.title} onChange={(e) => setPostData({ ...postData, title: e.target.value })} />
             <TextField name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
@@ -73,8 +84,14 @@ export default function Form({ postId, setPostId }){
                 onDelete={(chip) => handleDeleteTag(chip)}
             />
             </div>
-            <div className={classes.fileInput}><FileBase type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div>
-            <Button className={classes.buttonSubmit} variant="contained" color="primary" size="large" type="submit" fullWidth>Submit</Button>
+            <div sx={{
+                width: '97%',
+                margin: '10px 0',
+              }}>
+            <FileBase type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div>
+            <Button sx={{
+                marginBottom: 10,
+              }} variant="contained" color="primary" size="large" type="submit" fullWidth>Submit</Button>
             <Button variant="contained" color="secondary" size="small" onClick={clearForm} fullWidth>Clear</Button>
         </form>
         </Paper>

@@ -7,8 +7,9 @@ from fastapi.responses import JSONResponse
 from bson.objectid import ObjectId
 from models import RegisterData, LoginData, PostCreateUpdateData, CommentData, User
 from config import origins, settings, db
-from schemas import posts_serializer, post_serializer, user_serializer
+from schemas import posts_serializer, post_serializer, user_serializer, likes_serializer, post_detail_serializer
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_password_hash, verify_password, getAuthUser
+from pymongo import ReturnDocument
 
 app = FastAPI()
 
@@ -86,14 +87,15 @@ def getPost(post_id:str):
     
     post = next(post)
 
-    return post_serializer(post)
+    return post_detail_serializer(post)
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
 
 @app.post("/posts")
 def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
   try:
-    post = db.posts.insert_one({
+    posts = db.posts
+    post = posts.insert_one({
       "title": data.title,
       "message": data.message,
       "tags": data.tags,
@@ -101,9 +103,21 @@ def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
       "user": ObjectId(user.id)
     })
 
-    post = db.posts.find_one({"_id": ObjectId(post.inserted_id)})
-  
-    return post_serializer(post)
+    post = posts.aggregate([
+      { "$match": { "_id":  ObjectId(post["_id"])} },
+      {
+        "$lookup": {
+          "from": "users",
+          "localField": "user", 
+          "foreignField": "_id",
+          "as": "user",
+        }
+      }
+    ])
+    
+    post = next(post)
+
+    return post_detail_serializer(post)  
   except Exception as e:
     return JSONResponse(status_code=400, content=e)
 
@@ -111,18 +125,19 @@ def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
 def likePost(post_id: str, user: User = Depends(getAuthUser)):
   try:  
     posts = db.posts
+    post = posts.find_one({"_id": ObjectId(post_id)}, {"likes": 1})
 
-    post = posts.find_one({"_id": post_id})
-    index = next(index for index, item in post["likes"] if item["user"] == user.id)
+    index = None
+    if "likes" in post and len(post["likes"]) > 0:
+      index = likes_serializer(post["likes"]).index(user.id)
 
-    if index >= 0:
-      post = posts.update_one({"_id": post_id}, { "$pull": { "likes": { "user": ObjectId(user.id) } } })
+    if index is None:
+      post = posts.update_one({"_id": ObjectId(post_id)}, { "$push": { "likes": ObjectId(user.id)}})
+      return JSONResponse(content = {"message": "Liked"})
     else:
-      post = posts.update_one({"_id": post_id}, { "$addToSet": { "likes": {
-        "user": ObjectId(user.id)
-      }}})
+      post = posts.update_one({"_id": ObjectId(post_id)}, { "$pull": { "likes": ObjectId(user.id)}})
+      return JSONResponse(content = {"message": "Like Removed"})
 
-    return post_serializer(post)
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
 
@@ -131,27 +146,39 @@ def commentPost(post_id: str, data: CommentData, user: User = Depends(getAuthUse
   try:
     posts = db.posts
 
-    post = posts.update_one({"_id": post_id}, { 
-      "$push": { "comments": { "user": ObjectId(user.id), "comment": data.comment } } 
+    post = posts.update_one({"_id": ObjectId(post_id)}, { 
+      "$push": { "comments": { "user": ObjectId(user.id), "username": user.username,"comment": data.comment } } 
     })
 
-    return post_serializer(post)
+    post = posts.aggregate([
+      { "$match": { "_id":  ObjectId(post_id)} },
+      {
+        "$lookup": {
+          "from": "users",
+          "localField": "user", 
+          "foreignField": "_id",
+          "as": "user",
+        }
+      }
+    ])
+    
+    post = next(post)
+
+    return post_detail_serializer(post)  
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
 
 @app.patch("/posts/{post_id}")
 def updatePost(post_id: str, data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
   try:
-    post = db.posts.update_one({"_id": post_id, "user": ObjectId(user.id) }, {
+    post = db.posts.find_one_and_update({"_id": post_id, "user": ObjectId(user.id) }, {
       "$set": {
         "title": data.title, 
         "message": data.message, 
         "tags": data.tags,
         "selectedFile": data.selectedFile
       }
-    })
-
-    post = db.posts.find_one({"_id": ObjectId(post.inserted_id)})
+    }, return_document = ReturnDocument.AFTER)
   
     return post_serializer(post)
   except Exception as e:
