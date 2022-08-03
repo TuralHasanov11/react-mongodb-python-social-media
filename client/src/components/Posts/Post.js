@@ -16,11 +16,11 @@ const Post = ({ post, setPostId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userId = user?.result.googleId || user?.result?._id;
+  const userId = user?.result.googleId || user?.result?.id;
   const hasLikedPost = post.likes.find((like) => like === userId);
 
   const handleLike = async () => {
-    dispatch(likePost(post._id));
+    dispatch(likePost(post.id));
 
     if (hasLikedPost) {
       setLikes(post.likes.filter((id) => id !== userId));
@@ -43,8 +43,8 @@ const Post = ({ post, setPostId }) => {
   };
 
   const openPost = (e) => {
-    // dispatch(getPost(post._id, navigate));
-    navigate(`/posts/${post._id}`);
+    // dispatch(getPost(post.id, navigate));
+    navigate(`/posts/${post.id}`);
   };
 
   return (
@@ -80,7 +80,7 @@ const Post = ({ post, setPostId }) => {
           <Typography variant="h6">{post.name}</Typography>
           <Typography variant="body2">{moment(post.createdAt).fromNow()}</Typography>
         </div>
-        {(user?.result?.googleId === post?.creator || user?.result?._id === post?.creator) && (
+        {(user?.result?.googleId === post?.creator || user?.result?.id === post?.creator) && (
         <div sx={{
           position: 'absolute',
           top: '20px',
@@ -90,7 +90,7 @@ const Post = ({ post, setPostId }) => {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              setPostId(post._id);
+              setPostId(post.id);
             }}
             style={{ color: 'white' }}
             size="small"
@@ -121,8 +121,8 @@ const Post = ({ post, setPostId }) => {
         <Button size="small" color="primary" disabled={!user?.result} onClick={handleLike}>
           <Likes />
         </Button>
-        {(user?.result?.googleId === post?.creator || user?.result?._id === post?.creator) && (
-          <Button size="small" color="secondary" onClick={() => dispatch(deletePost(post._id))}>
+        {(user?.result?.googleId === post?.creator || user?.result?.id === post?.creator) && (
+          <Button size="small" color="secondary" onClick={() => dispatch(deletePost(post.id))}>
             <DeleteIcon fontSize="small" /> &nbsp; Delete
           </Button>
         )}

@@ -20,7 +20,7 @@ export default function Posts({ setPostId }){
           padding: '10px 50px',
         }} container alignItems="stretch" spacing={3}>
           {posts?.map((post) => (
-            <Grid key={post._id} item xs={12} sm={12} md={6} lg={3}>
+            <Grid key={post.id} item xs={12} sm={12} md={6} lg={3}>
               <Post post={post} setPostId={setPostId} />
             </Grid>
           ))}

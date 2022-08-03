@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import FileBase from 'react-file-base64';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { alpha } from '@mui/material/styles';
 
 
 export default function Form({ postId, setPostId }){
@@ -39,7 +38,7 @@ export default function Form({ postId, setPostId }){
     if (!user?.result?.name) {
         return (
           <Paper sx={{
-              padding: (theme) => alpha(theme.spacing(2)),
+              padding: 2,
             }} elevation={6}>
             <Typography variant="h6" align="center">
               Please Sign In to create your own memories and like other's memories.
@@ -59,17 +58,16 @@ export default function Form({ postId, setPostId }){
 
     return (
         <Paper sx={{
-            padding: (theme) => alpha(theme.spacing(2)),
+            padding: 2,
           }} elevation={6}>
-        <form autoComplete="off" noValidate sx={`${{
-            '& .MuiTextField-root': {
-              margin: (theme) => alpha(theme.spacing(1)),
-            },
-          }} ${{
+        <form autoComplete="off" noValidate sx={{
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
-          }}`} onSubmit={submitForm}>
+            '& .MuiTextField-root': {
+              margin: 1,
+            },
+          }} onSubmit={submitForm}>
             <Typography variant="h6">{postId ? `Editing "${post?.title}"` : 'Creating a Memory'}</Typography>
             <TextField name="title" variant="outlined" label="Title" fullWidth value={postData.title} onChange={(e) => setPostData({ ...postData, title: e.target.value })} />
             <TextField name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
