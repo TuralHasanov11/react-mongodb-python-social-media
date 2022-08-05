@@ -23,6 +23,41 @@ app.add_middleware(
 
 # Endpoints  
 @app.get("/posts")
+def getPosts(page: Optional[str] = Query(1)):
+  try:
+    limit = 10
+    page = int(page)
+    startIndex = (page-1)*limit
+    aggregate = [
+      {
+        "$lookup":{
+          "from": "users",
+          "localField":"user", 
+          "foreignField": "_id",
+          "as":"user",
+        }
+      },
+      {"$skip": startIndex},
+      {"$limit": limit}
+    ]
+
+    posts = db.posts.aggregate(aggregate)
+    
+    aggregate.append({"$count": "total"})
+    
+    total = db.posts.aggregate(aggregate)
+    total = next(total)["total"]
+
+    return JSONResponse(
+      content = { 
+        "data": posts_serializer(posts), 
+        "currentPage": page, 
+        "numberOfPages": ceil(total / limit)
+      })
+  except Exception as e:
+    return JSONResponse(status_code=400, content = e)
+
+@app.get("/posts/search")
 def getPosts(page: Optional[str] = Query(1), username: Optional[str] = Query(None), searchQuery: Optional[str]=Query(None), tags: Optional[str] = Query(None)):
   try:
     limit = 10
@@ -59,6 +94,7 @@ def getPosts(page: Optional[str] = Query(1), username: Optional[str] = Query(Non
     aggregate.append({"$count": "total"})
     
     total = db.posts.aggregate(aggregate)
+    
     total = next(total)["total"]
 
     return JSONResponse(

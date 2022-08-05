@@ -20,7 +20,7 @@ const Post = () => {
 
   useEffect(() => {
     if (post) {
-      dispatch(getPostsBySearch({ search: 'none', tags: post?.tags.join(',') }));
+      dispatch(getPostsBySearch({ search: '', tags: post?.tags.join(',') }));
     }
   }, [post]);
 
@@ -90,7 +90,7 @@ const Post = () => {
           <img sx={{
             borderRadius: '20px',
             objectFit: 'cover',
-            width: '100%',
+            width: '90%',
             maxHeight: '600px',
 
           }} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />

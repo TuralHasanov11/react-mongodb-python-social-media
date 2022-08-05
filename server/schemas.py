@@ -29,7 +29,7 @@ def post_detail_serializer(post: dict):
         "tags": post["tags"],
         "user": user_serializer(post["user"][0]),
         "likes": likes_serializer(post["likes"]),
-        "comments": comments_serializer(post["comments"])
+        # "comments": comments_serializer(post["comments"] or [])
     }
 
 def posts_serializer(posts: list):
