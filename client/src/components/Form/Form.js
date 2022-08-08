@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 export default function Form({ postId, setPostId }){
     const [postData, setPostData] = useState({ title: '', message: '', tags: [], selectedFile: '' });
-    const post = useSelector((state) => (postId ? state.posts.posts.find((message) => message._id === postId) : null));
+    const post = useSelector((state) => (postId ? state.posts.posts.find((message) => message.id === postId) : null));
     const dispatch = useDispatch();
     const user = JSON.parse(localStorage.getItem('profile'));
     const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Form({ postId, setPostId }){
         }
     };
 
-    if (!user?.result?.name) {
+    if (!user?.id) {
         return (
           <Paper sx={{
               padding: 2,
@@ -68,9 +68,15 @@ export default function Form({ postId, setPostId }){
               margin: 1,
             },
           }} onSubmit={submitForm}>
-            <Typography variant="h6">{postId ? `Editing "${post?.title}"` : 'Creating a Memory'}</Typography>
-            <TextField name="title" variant="outlined" label="Title" fullWidth value={postData.title} onChange={(e) => setPostData({ ...postData, title: e.target.value })} />
-            <TextField name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
+            <Typography sx={{
+              mt: '0.5em',
+            }} variant="h6">{postId ? `Editing "${post?.title}"` : 'Creating a Memory'}</Typography>
+            <TextField sx={{
+              mt: '0.5em',
+            }} name="title" variant="outlined" label="Title" fullWidth value={postData.title} onChange={(e) => setPostData({ ...postData, title: e.target.value })} />
+            <TextField sx={{
+              mt: '0.5em',
+            }} name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
             <div style={{ padding: '5px 0', width: '94%' }}>
             <Chip
                 name="tags"
@@ -78,17 +84,23 @@ export default function Form({ postId, setPostId }){
                 label="Tags"
                 fullWidth
                 value={postData.tags}
-                onAdd={(chip) => handleAddTag(chip)}
-                onDelete={(chip) => handleDeleteTag(chip)}
+                sx={{
+                  my: '0.5em',
+                }}
+                // onAdd={(chip) => handleAddTag(chip)}
+                // onDelete={(chip) => handleDeleteTag(chip)}
             />
             </div>
             <div sx={{
                 width: '97%',
                 margin: '10px 0',
               }}>
-            <FileBase type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div>
+            <FileBase sx={{
+              mt: '0.5em',
+            }} type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div>
             <Button sx={{
-                marginBottom: 10,
+                mt:"0.5em",
+                marginBottom: 1,
               }} variant="contained" color="primary" size="large" type="submit" fullWidth>Submit</Button>
             <Button variant="contained" color="secondary" size="small" onClick={clearForm} fullWidth>Clear</Button>
         </form>

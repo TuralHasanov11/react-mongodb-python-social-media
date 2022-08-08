@@ -10,27 +10,41 @@ def post_serializer(post: dict):
     }
 
 def post_list_item_serializer(post: dict):
-    return {
-        "id": str(post["_id"]),
-        "title": post["title"],
-        "message": post["message"],
-        "selectedFile": post["selectedFile"],
-        "tags": post["tags"],
-        "user": str(post["user"][0]),
-        "likes": likes_serializer(post["likes"])
-    }
-
-def post_detail_serializer(post: dict):
-    return {
+    result = {
         "id": str(post["_id"]),
         "title": post["title"],
         "message": post["message"],
         "selectedFile": post["selectedFile"],
         "tags": post["tags"],
         "user": user_serializer(post["user"][0]),
-        "likes": likes_serializer(post["likes"]),
-        # "comments": comments_serializer(post["comments"] or [])
     }
+
+    if "likes" in post:
+        result["likes"] = likes_serializer(post["likes"])
+    else:
+        result["likes"] = []
+
+    return result 
+
+def post_detail_serializer(post: dict):
+    result = {
+        "id": str(post["_id"]),
+        "title": post["title"],
+        "message": post["message"],
+        "selectedFile": post["selectedFile"],
+        "tags": post["tags"],
+        "user": user_serializer(post["user"][0]),
+    }
+
+    if "likes" in post:
+        result["likes"] = likes_serializer(post["likes"])
+    else:
+        result["likes"] = []
+
+    if "comments" in post:
+        result["comments"] = comments_serializer(post["comments"])
+
+    return result 
 
 def posts_serializer(posts: list):
     return [post_list_item_serializer(post) for post in posts]

@@ -12,7 +12,7 @@ const Comments = ({ post }) => {
   const commentsRef = useRef();
 
   const handleComment = async () => {
-    const newComments = await dispatch(commentPost(`${user?.result?.name}: ${comment}`, post._id));
+    const newComments = await dispatch(commentPost(`${user?.result?.name}: ${comment}`, post.id));
 
     setComment('');
     setComments(newComments);

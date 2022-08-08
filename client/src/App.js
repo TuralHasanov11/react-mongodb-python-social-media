@@ -11,11 +11,11 @@ function App() {
 
   return (
     <div className="App">
-      <Container maxWidth="lg">
+      <Container maxWidth="xl" >
         <Navbar />
         <Routes>
           <Route path='/' exact element={ <Home />}></Route>
-          <Route path='/search' exact element={ <Home />}></Route>
+          <Route path='/posts/search' exact element={ <Home />}></Route>
           <Route path='/posts/:id' exact element={ <PostDetail />}></Route>
           <Route path='/auth' exact element={ !user ? <Auth /> : <Navigate to='/' />}></Route>
           <Route path='*' element={<Navigate to='/' />}></Route>

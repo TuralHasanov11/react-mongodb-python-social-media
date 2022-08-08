@@ -16,7 +16,7 @@ const Post = ({ post, setPostId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userId = user?.result.googleId || user?.result?.id;
+  const userId = user?.googleId || user?.id;
   const hasLikedPost = post.likes.find((like) => like === userId);
 
   const handleLike = async () => {
@@ -78,9 +78,9 @@ const Post = ({ post, setPostId }) => {
             color: 'white',
           }}>
           <Typography variant="h6">{post.name}</Typography>
-          <Typography variant="body2">{moment(post.createdAt).fromNow()}</Typography>
+          <Typography sx={{m: '0.5em'}} variant="body2">{moment(post.createdAt).fromNow()}</Typography>
         </div>
-        {(user?.result?.googleId === post?.creator || user?.result?.id === post?.creator) && (
+        {(user?.googleId === post?.user?.id || user?.id === post?.user?.id) && (
         <div sx={{
           position: 'absolute',
           top: '20px',
@@ -104,7 +104,7 @@ const Post = ({ post, setPostId }) => {
             justifyContent: 'space-between',
             margin: '20px',
           }}>
-          <Typography variant="body2" color="textSecondary" component="h2">{post.tags.map((tag) => `#${tag} `)}</Typography>
+          <Typography mx="0.5em" variant="body2" color="textSecondary" component="h2">{post.tags.map((tag) => `#${tag} `)}</Typography>
         </div>
         <Typography sx={{
             padding: '0 16px',
@@ -118,10 +118,10 @@ const Post = ({ post, setPostId }) => {
           display: 'flex',
           justifyContent: 'space-between',
         }}>
-        <Button size="small" color="primary" disabled={!user?.result} onClick={handleLike}>
+        <Button size="small" color="primary" disabled={!user} onClick={handleLike}>
           <Likes />
         </Button>
-        {(user?.result?.googleId === post?.creator || user?.result?.id === post?.creator) && (
+        {(user?.googleId === post?.user?.id || user?.id === post?.user?.id) && (
           <Button size="small" color="secondary" onClick={() => dispatch(deletePost(post.id))}>
             <DeleteIcon fontSize="small" /> &nbsp; Delete
           </Button>

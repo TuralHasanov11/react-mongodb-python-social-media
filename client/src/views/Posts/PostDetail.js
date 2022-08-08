@@ -7,6 +7,12 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPost, getPostsBySearch } from '../../actions/posts';
 import Comments from '../../components/PostDetail/Comments';
 import { alpha } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/system';
+
+
+const theme = createTheme({
+  
+});
 
 const Post = () => {
   const { post, posts, isLoading } = useSelector((state) => state.posts);
@@ -26,7 +32,7 @@ const Post = () => {
 
   if (!post) return null;
 
-  const openPost = (_id) => navigate(`/posts/${_id}`);
+  const openPost = (id) => navigate(`/posts/${id}`);
 
   if (isLoading) {
     return (
@@ -43,7 +49,7 @@ const Post = () => {
     );
   }
 
-  const recommendedPosts = posts.filter(({ _id }) => _id !== post._id);
+  const recommendedPosts = posts.filter(({ id }) => id !== post.id);
 
   return (
     <Paper style={{ padding: '20px', borderRadius: '15px' }} elevation={6}>
@@ -70,18 +76,12 @@ const Post = () => {
           <Typography gutterBottom variant="body1" component="p">{post.message}</Typography>
           <Typography variant="h6">
             Created by:
-            <Link to={`/creators/${post.name}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
-              {` ${post.name}`}
+            <Link to={`/creators/${post.user.username}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
+              {` ${post.user.username}`}
             </Link>
           </Typography>
           <Typography variant="body1">{moment(post.createdAt).fromNow()}</Typography>
-          <Divider style={{ margin: '20px 0' }} />
-          <Typography variant="body1"><strong>Realtime Chat - coming soon!</strong></Typography>
-          <Divider style={{ margin: '20px 0' }} />
-          <Comments post={post} />
-          <Divider style={{ margin: '20px 0' }} />
-        </div>
-        <div sx={{
+          <div sx={{
             marginLeft: '20px',
             [(theme) => alpha(theme.breakpoints.down('sm'))]: {
               marginLeft: 0,
@@ -91,9 +91,15 @@ const Post = () => {
             borderRadius: '20px',
             objectFit: 'cover',
             width: '90%',
-            maxHeight: '600px',
+            maxHeight: 300,
 
           }} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />
+        </div>
+          <Divider style={{ margin: '20px 0' }} />
+          <Typography variant="body1"><strong>Realtime Chat - coming soon!</strong></Typography>
+          <Divider style={{ margin: '20px 0' }} />
+          <Comments post={post} />
+          <Divider style={{ margin: '20px 0' }} />
         </div>
       </div>
       {!!recommendedPosts.length && (
@@ -106,12 +112,13 @@ const Post = () => {
           <Divider />
           <div sx={{
               display: 'flex',
+              flexDirection:"row",
               [(theme)=>alpha(theme.breakpoints.down('sm'))]: {
                 flexDirection: 'column',
               },
             }}>
-            {recommendedPosts.map(({ title, name, message, likes, selectedFile, _id }) => (
-              <div style={{ margin: '20px', cursor: 'pointer' }} onClick={() => openPost(_id)} key={_id}>
+            {recommendedPosts.map(({ title, name, message, likes, selectedFile, id }) => (
+              <div style={{ margin: '20px', cursor: 'pointer' }} onClick={() => openPost(id)} key={id}>
                 <Typography gutterBottom variant="h6">{title}</Typography>
                 <Typography gutterBottom variant="subtitle2">{name}</Typography>
                 <Typography gutterBottom variant="subtitle2">{message}</Typography>
@@ -123,6 +130,7 @@ const Post = () => {
         </div>
       )}
     </Paper>
+    
   );
 };
 

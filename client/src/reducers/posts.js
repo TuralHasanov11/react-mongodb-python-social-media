@@ -19,12 +19,12 @@ export default (state = { isLoading: true, posts: [] }, action) => {
     case FETCH_POST:
       return { ...state, post: action.payload.post };
     case LIKE:
-      return { ...state, posts: state.posts.map((post) => (post._id === action.payload._id ? action.payload : post)) };
+      return { ...state, posts: state.posts.map((post) => (post.id === action.payload.id ? {...post, likes:action.payload.likes} : post)) };
     case COMMENT:
       return {
         ...state,
         posts: state.posts.map((post) => {
-          if (post._id == action.payload._id) {
+          if (post.id == action.payload.id) {
             return action.payload;
           }
           return post;
@@ -33,9 +33,9 @@ export default (state = { isLoading: true, posts: [] }, action) => {
     case CREATE:
       return { ...state, posts: [...state.posts, action.payload] };
     case UPDATE:
-      return { ...state, posts: state.posts.map((post) => (post._id === action.payload._id ? action.payload : post)) };
+      return { ...state, posts: state.posts.map((post) => (post.id === action.payload.id ? action.payload : post)) };
     case DELETE:
-      return { ...state, posts: state.posts.filter((post) => post._id !== action.payload) };
+      return { ...state, posts: state.posts.filter((post) => post.id !== action.payload) };
     default:
       return state;
   }

@@ -66,7 +66,7 @@ const Navbar = () => {
             sm: 'auto',
           },
         }}>
-        {user?.result ? (
+        {user ? (
           <div sx={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -85,12 +85,12 @@ const Navbar = () => {
             <Avatar sx={{
                 color: (theme) => alpha(theme.palette.getContrastText(deepPurple[500])),
                 backgroundColor: deepPurple[500],
-              }} alt={user?.result.name} src={user?.result.imageUrl}>{user?.result.name.charAt(0)}</Avatar>
+              }} alt={user?.username} src={user?.imageUrl}>{user?.username[0]}</Avatar>
             <Typography sx={{
                 display: 'flex',
                 alignItems: 'center',
                 textAlign: 'center',
-              }} variant="h6">{user?.result.name}</Typography>
+              }} variant="h6">{user?.username}</Typography>
             <Button variant="contained" 
               sx={{
                 marginLeft: '20px',

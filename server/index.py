@@ -140,7 +140,7 @@ def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
     })
 
     post = posts.aggregate([
-      { "$match": { "_id":  ObjectId(post["_id"])} },
+      { "$match": { "_id":  ObjectId(str(post.inserted_id))} },
       {
         "$lookup": {
           "from": "users",
@@ -151,9 +151,7 @@ def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
       }
     ])
     
-    post = next(post)
-
-    return post_detail_serializer(post)  
+    return post_detail_serializer(next(post))  
   except Exception as e:
     return JSONResponse(status_code=400, content=e)
 
@@ -168,11 +166,11 @@ def likePost(post_id: str, user: User = Depends(getAuthUser)):
       index = likes_serializer(post["likes"]).index(user.id)
 
     if index is None:
-      post = posts.update_one({"_id": ObjectId(post_id)}, { "$push": { "likes": ObjectId(user.id)}})
-      return JSONResponse(content = {"message": "Liked"})
+      post = posts.find_one_and_update({"_id": ObjectId(post_id)}, { "$push": { "likes": ObjectId(user.id)}}, projection = { "likes" : 1 }, return_document = ReturnDocument.AFTER)
     else:
-      post = posts.update_one({"_id": ObjectId(post_id)}, { "$pull": { "likes": ObjectId(user.id)}})
-      return JSONResponse(content = {"message": "Like Removed"})
+      post = posts.find_one_and_update({"_id": ObjectId(post_id)}, { "$pull": { "likes": ObjectId(user.id)}}, projection = { "likes" : 1 }, return_document = ReturnDocument.AFTER)
+
+    return {"id": str(post["_id"]), "likes": likes_serializer(post["likes"])}
 
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
@@ -225,23 +223,25 @@ def deletePost(post_id: str, user: User = Depends(getAuthUser)):
   try:
     post = db.posts.delete_one({"_id": post_id, "user": ObjectId(user.id) })
 
-    return post_serializer(post)
+    return post_id
   except Exception as e:
     return JSONResponse(status_code=400, content = e)
 
 @app.post("/auth/login")
 def login(data: LoginData):
   try:
-    oldUser = db.users.find_one({ "email": data.email })
+    user = db.users.find_one({ "email": data.email })
 
-    if oldUser and verify_password(data.password, oldUser["password"]):
-      oldUser = user_serializer(oldUser)
+    if user and verify_password(data.password, user["password"]):
+      user = user_serializer(user)
       
       token = create_access_token(
-        data={"id": oldUser["id"]}, expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        data={"id": user["id"]}, expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
       )
 
-      return JSONResponse(content = {"result": oldUser, "token": token})
+      user["token"] = token
+
+      return JSONResponse(content=user)
     else:
       return JSONResponse(status_code=401, content={"message": "Email or password is incorrect!"})
 
@@ -272,9 +272,11 @@ async def register(data: RegisterData):
         token = create_access_token(
           data={"id": user["id"]}, expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
+
+        user["token"] = token
       except Exception as e:
         return JSONResponse(status_code=400, content = e)
 
-      return JSONResponse(status_code= 201, content= {"result": user, "token": token})
+      return JSONResponse(status_code= 201, content= user)
   except Exception as e:
     return JSONResponse(status_code=400, content=e)
