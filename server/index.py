@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from math import ceil
 from typing import Optional
 from fastapi import FastAPI, Query, Depends
@@ -131,12 +131,14 @@ def getPost(post_id:str):
 def createPost(data: PostCreateUpdateData, user: User = Depends(getAuthUser)):
   try:
     posts = db.posts
+    createdAtDate = datetime.now()
     post = posts.insert_one({
       "title": data.title,
       "message": data.message,
       "tags": data.tags,
       "selectedFile": data.selectedFile,
-      "user": ObjectId(user.id)
+      "user": ObjectId(user.id),
+      "createdAt": createdAtDate.timestamp()
     })
 
     post = posts.aggregate([
