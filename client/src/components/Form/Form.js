@@ -1,4 +1,4 @@
-import { TextField, Button, Typography, Paper, Chip } from '@mui/material'
+import { TextField, Button, Typography, Paper, Chip, Stack } from '@mui/material'
 import { createPost, updatePost } from '../../actions/posts';
 import { useDispatch, useSelector } from 'react-redux';
 import FileBase from 'react-file-base64';
@@ -12,6 +12,9 @@ export default function Form({ postId, setPostId }){
     const dispatch = useDispatch();
     const user = JSON.parse(localStorage.getItem('profile'));
     const navigate = useNavigate();
+    const [postTags, setPostTags] = useState(['asda', 'asdas']);
+    const [tagsInput, setTagsInput] = useState('');
+
 
     useEffect(() => {
       if (!post?.title) clearForm();
@@ -36,24 +39,27 @@ export default function Form({ postId, setPostId }){
     };
 
     if (!user?.id) {
-        return (
-          <Paper sx={{
-              padding: 2,
-            }} elevation={6}>
-            <Typography variant="h6" align="center">
-              Please Sign In to create your own memories and like other's memories.
-            </Typography>
-          </Paper>
-        );
+      return (
+        <Paper sx={{
+            padding: 2,
+          }} elevation={6}>
+          <Typography variant="h6" align="center">
+            Please Sign In to create your own posts and like other's posts.
+          </Typography>
+        </Paper>
+      );
+    }
+  
+    function handleAddTag(event){
+      if(event.keyCode === 32){
+        setPostData({ ...postData, tags: [...postData.tags, event.target.value] });
+        setTagsInput('');
       }
-    
-      const handleAddTag = (tag) => {
-        setPostData({ ...postData, tags: [...postData.tags, tag] });
-      };
-    
-      const handleDeleteTag = (chipToDelete) => {
-        setPostData({ ...postData, tags: postData.tags.filter((tag) => tag !== chipToDelete) });
-      };
+    };
+  
+    const handleDeleteTag = (chipToDelete) => () => {
+      setPostData({ ...postData, tags: postData.tags.filter((chip) => chip !== chipToDelete) });
+    };
     
 
     return (
@@ -78,18 +84,21 @@ export default function Form({ postId, setPostId }){
               mt: '0.5em',
             }} name="message" variant="outlined" label="Message" fullWidth multiline rows={4} value={postData.message} onChange={(e) => setPostData({ ...postData, message: e.target.value })} />
             <div style={{ padding: '5px 0', width: '94%' }}>
-            <Chip
-                name="tags"
-                variant="outlined"
-                label="Tags"
-                fullWidth
-                value={postData.tags}
-                sx={{
-                  my: '0.5em',
-                }}
-                // onAdd={(chip) => handleAddTag(chip)}
-                // onDelete={(chip) => handleDeleteTag(chip)}
-            />
+              <TextField sx={{
+                  mt: '0.5em',
+                }} value={tagsInput} variant="outlined" label="Tags" fullWidth onChange={event => setTagsInput(event.target.value)} onKeyDown={handleAddTag} />
+              <Stack sx={{
+                  mt: '0.5em',
+                  display: 'flex'
+                }} spacing={1}>
+                {postData.tags.map((tag, index) => (<Chip
+                  key={index}
+                  style={{ margin: '10px 0' }}
+                  label={tag}
+                  onDelete={handleDeleteTag(tag)}
+                  variant="outlined"
+                />))}
+              </Stack>
             </div>
             <div sx={{
                 width: '97%',
@@ -104,6 +113,7 @@ export default function Form({ postId, setPostId }){
               }} variant="contained" color="primary" size="large" type="submit" fullWidth>Submit</Button>
             <Button variant="contained" color="secondary" size="small" onClick={clearForm} fullWidth>Clear</Button>
         </form>
+
         </Paper>
     )
 }

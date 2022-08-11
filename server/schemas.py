@@ -6,7 +6,8 @@ def post_serializer(post: dict):
         "selectedFile": post["selectedFile"],
         "tags": post["tags"],
         "user": str(post["user"]),
-        "likes": likes_serializer(post["likes"])
+        "likes": likes_serializer(post["likes"]),
+        "createdAt": round(post["createdAt"])
     }
 
 def post_list_item_serializer(post: dict):
@@ -17,6 +18,7 @@ def post_list_item_serializer(post: dict):
         "selectedFile": post["selectedFile"],
         "tags": post["tags"],
         "user": user_serializer(post["user"][0]),
+        "createdAt": round(post["createdAt"])
     }
 
     if "likes" in post:
@@ -34,6 +36,7 @@ def post_detail_serializer(post: dict):
         "selectedFile": post["selectedFile"],
         "tags": post["tags"],
         "user": user_serializer(post["user"][0]),
+        "createdAt": round(post["createdAt"])
     }
 
     if "likes" in post:

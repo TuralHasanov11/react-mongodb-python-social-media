@@ -2,12 +2,8 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Avatar, Button, Paper, Grid, Typography, Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-// import { GoogleLogin } from 'react-google-login';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-
-// import Icon from '../../components/Auth/icon';
 import { login, register } from '../../actions/auth';
-import { AUTH } from '../../constants/actionTypes';
 import Input from '../../components/Auth/Input';
 
 const initialState = { firstName: '', lastName: '', email: '', password: '', confirmPassword: '' };
@@ -37,21 +33,6 @@ const Auth = () => {
     }
   };
 
-  const googleSuccess = async (res) => {
-    const result = res?.profileObj;
-    const token = res?.tokenId;
-
-    try {
-      dispatch({ type: AUTH, data: { result, token } });
-
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const googleError = () => console.log('Google Sign In was unsuccessful. Try again later');
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   return (
@@ -69,7 +50,7 @@ const Auth = () => {
           }}>
           <LockOutlinedIcon />
         </Avatar>
-        <Typography component="h1" variant="h5">{ isRegister ? 'Sign up' : 'Sign in' }</Typography>
+        <Typography component="h1" variant="h5" sx={{mb:2}}>{ isRegister ? 'Sign up' : 'Sign in' }</Typography>
         <form sx={{
             width: '100%',
             marginTop: 3,

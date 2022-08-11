@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Container, Grow, Grid, AppBar, TextField, Button, Paper, Chip } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import { Container, Grow, Grid, AppBar, TextField, Button, Paper, Chip, Stack } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPostsBySearch } from '../actions/posts';
@@ -46,9 +46,18 @@ const Home = () => {
     }
   }, [dispatch, page]);
 
-  const handleAddTag = (tag) => setTags([...tags, tag]);
+  const [searchTags, setSearchTags] = useState('');
 
-  const handleDeleteTag = (chipToDelete) => setTags(tags.filter((tag) => tag !== chipToDelete));
+  function handleAddTag(event){
+    if(event.keyCode === 32){
+      setTags([...tags, event.target.value])
+      setSearchTags('');
+    }
+  };
+
+  const handleDeleteTag = (chipToDelete) => () => {
+    setTags((chips) => chips.filter((chip) => chip !== chipToDelete));
+  };
 
   return (
     <Grow in>
@@ -73,16 +82,24 @@ const Home = () => {
               position="static" 
               color="inherit"
             >
-              <TextField onKeyDown={handleKeyPress} name="search" variant="outlined" label="Search Memories" fullWidth value={search} onChange={(e) => setSearch(e.target.value)} />
-              <TextField name="search" variant="outlined" label="Search Memories" fullWidth value={search} onKeyDown={(e) => handleAddTag(e.target.value)} />
-              <Chip
-                style={{ margin: '10px 0' }}
-                value={tags}
-                onAdd={(chip) => handleAddTag(chip)}
-                onDelete={(chip) => handleDeleteTag(chip)}
-                label="Search Tags"
-                variant="outlined"
-              />
+              <TextField sx={{
+                  mt: '0.5em',
+                }} onKeyDown={handleKeyPress} name="search" variant="outlined" label="Search posts" fullWidth value={search} onChange={(e) => setSearch(e.target.value)} />
+              <TextField sx={{
+                  mt: '0.5em',
+                }} value={searchTags} variant="outlined" label="Search Tags" fullWidth onChange={event => setSearchTags(event.target.value)} onKeyDown={handleAddTag} />
+              <Stack sx={{
+                  mt: '0.5em',
+                  display: 'flex'
+                }} spacing={1}>
+                {tags.map((tag, index) => (<Chip
+                  key={index}
+                  style={{ margin: '10px 0' }}
+                  label={tag}
+                  onDelete={handleDeleteTag(tag)}
+                  variant="outlined"
+                />))}
+              </Stack>
               <Button sx={{
                 mt: '0.5em',
               }} onClick={searchPosts} variant="contained" color="primary">Search</Button>

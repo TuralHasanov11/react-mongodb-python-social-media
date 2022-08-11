@@ -68,7 +68,7 @@ const Post = ({ post, setPostId }) => {
         <CardMedia sx={{
             height: 0,
             paddingTop: '56.25%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
             backgroundBlendMode: 'darken',
           }} image={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} title={post.title} />
         <div sx={{
@@ -78,7 +78,7 @@ const Post = ({ post, setPostId }) => {
             color: 'white',
           }}>
           <Typography variant="h6">{post.name}</Typography>
-          <Typography sx={{m: '0.5em'}} variant="body2">{moment(post.createdAt).fromNow()}</Typography>
+          <Typography sx={{m: '0.5em' , color: 'primary.main'}} variant="body2"><span className='post_created_at'>{moment.unix(post.createdAt).fromNow()}</span></Typography>
         </div>
         {(user?.googleId === post?.user?.id || user?.id === post?.user?.id) && (
         <div sx={{

@@ -8,7 +8,7 @@ import { getPost, getPostsBySearch } from '../../actions/posts';
 import Comments from '../../components/PostDetail/Comments';
 import { alpha } from '@mui/material/styles';
 import { ThemeProvider, createTheme } from '@mui/system';
-
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const theme = createTheme({
   
@@ -73,28 +73,30 @@ const Post = () => {
             </Link>
           ))}
           </Typography>
-          <Typography gutterBottom variant="body1" component="p">{post.message}</Typography>
           <Typography variant="h6">
             Created by:
             <Link to={`/creators/${post.user.username}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
               {` ${post.user.username}`}
             </Link>
           </Typography>
-          <Typography variant="body1">{moment(post.createdAt).fromNow()}</Typography>
+          <Typography sx={{ color: 'primary.main' }} variant="body1"><span className='post_created_at'>{moment.unix(post.createdAt).fromNow()}</span></Typography>
           <div sx={{
             marginLeft: '20px',
             [(theme) => alpha(theme.breakpoints.down('sm'))]: {
               marginLeft: 0,
             },
           }}>
-          <img sx={{
-            borderRadius: '20px',
-            objectFit: 'cover',
-            width: '90%',
-            maxHeight: 300,
+            <Divider style={{ margin: '20px 0' }} />
+            <Typography gutterBottom variant="body1" component="p">{post.message}</Typography>
+            <Divider style={{ margin: '20px 0' }} />
+            <img sx={{
+              borderRadius: '20px',
+              objectFit: 'cover',
+              width: '90%',
+              maxHeight: 300,
 
-          }} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />
-        </div>
+            }} src={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} alt={post.title} />
+          </div>
           <Divider style={{ margin: '20px 0' }} />
           <Typography variant="body1"><strong>Realtime Chat - coming soon!</strong></Typography>
           <Divider style={{ margin: '20px 0' }} />
@@ -117,8 +119,8 @@ const Post = () => {
                 flexDirection: 'column',
               },
             }}>
-            {recommendedPosts.map(({ title, name, message, likes, selectedFile, id }) => (
-              <div style={{ margin: '20px', cursor: 'pointer' }} onClick={() => openPost(id)} key={id}>
+            {recommendedPosts.map(({ title, name, message, likes, selectedFile, id }, index) => (
+              <div style={{ margin: '20px', cursor: 'pointer' }} onClick={() => openPost(id)} key={index}>
                 <Typography gutterBottom variant="h6">{title}</Typography>
                 <Typography gutterBottom variant="subtitle2">{name}</Typography>
                 <Typography gutterBottom variant="subtitle2">{message}</Typography>

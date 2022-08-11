@@ -15,7 +15,6 @@ export default function Posts({ setPostId }){
           margin: '30px 0',
           display: 'flex',
           flexDirection: 'row',
-          justifyContent: 'space-between',
           alignItems: 'center',
           padding: '10px 50px',
         }} container alignItems="stretch" spacing={3}>
