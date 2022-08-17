@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     mongodb_url: str = ""
     app_url: str = ""
     secret_key: str = ""
+    client_url: str = ""
 
     class Config:
         env_file = ".env"
@@ -21,7 +22,9 @@ origins = [
     "https://localhost.tiangolo.com",
     "http://localhost",
     "http://localhost:8080",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    settings.app_url,
+    settings.client_url
 ]
 
 # MongoDB connection
